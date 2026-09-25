@@ -95,8 +95,10 @@ function bindInputs(container, ws, years, state, wsId, onChanged) {
   });
 }
 
+/** Recalculate row and column totals after a cell value changes.
+ *  Row totals are patched in place; the footer is fully rebuilt to
+ *  avoid index-mismatch issues with the column total cells. */
 function refreshTotals(container, ws, years, state) {
-  // Update each row's horizontal total
   ws.rows.forEach((row) => {
     const rowTotal = years.reduce((sum, y) => sum + nonNegative(row.values[y]), 0);
     const tr = container.querySelector(`tr[data-row="${CSS.escape(row.id)}"]`);
@@ -113,7 +115,8 @@ function refreshTotals(container, ws, years, state) {
   }
 }
 
-// Budget status for a year across ALL worksheets.
+/** Budget status for a year across ALL worksheets (not just the visible one).
+ *  Returns "ok" (within local funds), "warn" (needs grants), or "over". */
 function budgetClassForYear(state, year) {
   const by = state.budgetYears.find((b) => b.year === year);
   if (!by) return "ok";

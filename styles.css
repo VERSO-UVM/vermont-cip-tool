@@ -129,7 +129,7 @@ main#app {
   color: var(--color-text);
   cursor: pointer;
 }
-.btn:hover { background: #f0efe9; }
+.btn:hover { filter: brightness(0.96); }
 .btn:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 1px; }
 .btn-primary {
   background: var(--color-primary);

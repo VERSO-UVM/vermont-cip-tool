@@ -81,6 +81,10 @@ function updateAvailableCells(state) {
   });
 }
 
+/**
+ * What the plan can actually spend: local funds minus existing debt service,
+ * floored at 0 so a year whose debt exceeds its local funds doesn't go negative.
+ */
 export function availableLocal(by) {
   return Math.max(0, nonNegative(by.local) - nonNegative(by.debt));
 }

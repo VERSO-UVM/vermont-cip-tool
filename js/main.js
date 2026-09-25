@@ -149,8 +149,6 @@ function regenerateBudgetYears(newStart, newNum) {
 
 // ---- Tab navigation ----
 
-const TAB_IDS = ["budget", ...WORKSHEET_ORDER, "summary"];
-
 function activateTab(tabId) {
   state.activeTab = tabId;
   saveState();
@@ -232,6 +230,8 @@ document.getElementById("csv-file-input").addEventListener("change", (e) => {
   e.target.value = "";
 });
 
+/** Merge imported CSV data into current state. Budget years replace entirely
+ *  if present; cells and row metadata are applied onto existing worksheet rows. */
 function applyImport(result) {
   if (result.budgetYears.length) {
     state.budgetYears = result.budgetYears;

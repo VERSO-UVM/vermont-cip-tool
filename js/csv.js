@@ -1,7 +1,7 @@
 // CSV read/write for import/export.
 
-import { nonNegative, uid } from "./helpers.js";
-import { WORKSHEET_DEFS, WORKSHEET_ORDER } from "./data.js";
+import { nonNegative } from "./helpers.js";
+import { WORKSHEET_ORDER } from "./data.js";
 
 // ---- Low-level CSV parsing ----
 
