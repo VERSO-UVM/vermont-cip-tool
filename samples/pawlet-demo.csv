@@ -3,11 +3,11 @@ meta,,,,,,,,,,townName,Pawlet
 meta,,,,,,,,,,preparedBy,Planning Commission / Selectboard
 meta,,,,,,,,,,startYear,2026
 meta,,,,,,,,,,numYears,5
-budget_year,,,,,,FY2026,,,,750000,120000,85000,,
-budget_year,,,,,,FY2027,,,,750000,120000,85000,,
-budget_year,,,,,,FY2028,,,,775000,130000,42000,,
-budget_year,,,,,,FY2029,,,,775000,130000,0,,
-budget_year,,,,,,FY2030,,,,800000,140000,0,,
+budget_year,,,,,FY2026,,,750000,120000,85000,,
+budget_year,,,,,FY2027,,,750000,120000,85000,,
+budget_year,,,,,FY2028,,,775000,130000,42000,,
+budget_year,,,,,FY2029,,,775000,130000,0,,
+budget_year,,,,,FY2030,,,800000,140000,0,,
 cell,highway,hw-road-1,Road (1),Rt 133 Class 2 paving (segment 1),FY2026,280000,,,,,,,
 cell,highway,hw-road-1,Road (1),Rt 133 Class 2 paving (segment 1),FY2027,280000,,,,,,,
 cell,highway,hw-road-2,Road (2),Briar Hill Rd gravel-to-pave,FY2028,320000,,,,,,,
