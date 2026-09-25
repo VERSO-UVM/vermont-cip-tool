@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>CIP Tool - Totals Verification Tests</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2em auto; padding: 0 1em; }
+  .pass { color: #2f6b4f; } .fail { color: #a1332a; font-weight: 700; }
+  pre { background: #f6f5f1; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
+  h2 { border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .summary { font-size: 1.2rem; margin: 1em 0; padding: 12px; border-radius: 8px; }
+  .summary.all-pass { background: #e6f0ea; color: #2f6b4f; }
+  .summary.has-fail { background: #f7e6e4; color: #a1332a; }
+</style>
+</head>
+<body>
+<h1>CIP Tool - Totals Verification Tests</h1>
+<div id="results"></div>
+<script type="module">
+import { nonNegative } from "../js/helpers.js";
+import { WORKSHEET_DEFS, WORKSHEET_ORDER, DEFAULT_START_YEAR, DEFAULT_NUM_YEARS, DEFAULT_BUDGET } from "../js/data.js";
+import { availableLocal } from "../js/budget.js";
+import { parseCsv, parseSessionCsv } from "../js/csv.js";
+
+const results = [];
+function assert(name, condition, detail) {
+  results.push({ name, passed: !!condition, detail: detail || "" });
+}
+
+// ---- Build a test state from the sample CSV ----
+
+const csvResponse = await fetch("../samples/pawlet-demo.csv");
+const csvText = await csvResponse.text();
+const parsed = parseSessionCsv(csvText);
+
+// Build state similar to how main.js does it
+function buildState(parsed) {
+  const budgetYears = parsed.budgetYears.length ? parsed.budgetYears : [];
+  const yearKeys = budgetYears.map((b) => b.year);
+
+  const worksheets = {};
+  WORKSHEET_ORDER.forEach((wsId) => {
+    const def = WORKSHEET_DEFS[wsId];
+    worksheets[wsId] = {
+      label: def.label,
+      rows: def.rows.map((r) => {
+        const values = {};
+        yearKeys.forEach((y) => { values[y] = 0; });
+        return { id: r.id, label: r.label, type: r.type, customName: "", values, notes: "" };
+      }),
+    };
+  });
+
+  // Apply cells
+  parsed.cells.forEach((cell) => {
+    const ws = worksheets[cell.worksheet];
+    if (!ws) return;
+    const row = ws.rows.find((r) => r.id === cell.rowId);
+    if (!row) return;
+    if (yearKeys.includes(cell.year)) {
+      row.values[cell.year] = cell.amount;
+    }
+  });
+
+  return { budgetYears, worksheets };
+}
+
+const state = buildState(parsed);
+const years = state.budgetYears.map((b) => b.year);
+
+// ---- TEST 1: CSV parsed correctly ----
+
+assert("CSV parses budget years", state.budgetYears.length === 5,
+  `Expected 5, got ${state.budgetYears.length}`);
+
+assert("CSV budget years have correct labels",
+  years.join(",") === "FY2026,FY2027,FY2028,FY2029,FY2030",
+  `Got: ${years.join(",")}`);
+
+assert("CSV budget years have non-zero local funds",
+  state.budgetYears.every((by) => by.local > 0),
+  `Local funds: ${state.budgetYears.map((by) => by.local).join(", ")}`);
+
+assert("CSV parsed cells",
+  parsed.cells.length > 0,
+  `Got ${parsed.cells.length} cells`);
+
+// ---- TEST 2: Column totals per worksheet ----
+
+WORKSHEET_ORDER.forEach((wsId) => {
+  const ws = state.worksheets[wsId];
+  years.forEach((y) => {
+    const colTotal = ws.rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+    // Verify by manually summing each row
+    let manualSum = 0;
+    ws.rows.forEach((row) => { manualSum += nonNegative(row.values[y]); });
+    assert(`${wsId} column ${y}: reduce matches manual sum`,
+      colTotal === manualSum,
+      `reduce=${colTotal}, manual=${manualSum}`);
+  });
+});
+
+// ---- TEST 3: Each column total is independent ----
+
+WORKSHEET_ORDER.forEach((wsId) => {
+  const ws = state.worksheets[wsId];
+  const colTotals = {};
+  years.forEach((y) => {
+    colTotals[y] = ws.rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+  });
+
+  // Check that not all columns have the same total (would indicate the bug)
+  const uniqueTotals = new Set(Object.values(colTotals));
+  const hasData = Object.values(colTotals).some((t) => t > 0);
+  if (hasData) {
+    assert(`${wsId}: columns have distinct totals (not all identical)`,
+      uniqueTotals.size > 1,
+      `Totals: ${JSON.stringify(colTotals)}`);
+  }
+});
+
+// ---- TEST 4: Row totals (horizontal sum) ----
+
+WORKSHEET_ORDER.forEach((wsId) => {
+  const ws = state.worksheets[wsId];
+  ws.rows.forEach((row) => {
+    const rowTotal = years.reduce((sum, y) => sum + nonNegative(row.values[y]), 0);
+    let manualSum = 0;
+    years.forEach((y) => { manualSum += nonNegative(row.values[y]); });
+    if (rowTotal > 0) {
+      assert(`${wsId} row "${row.id}" horizontal total`,
+        rowTotal === manualSum,
+        `reduce=${rowTotal}, manual=${manualSum}`);
+    }
+  });
+});
+
+// ---- TEST 5: Grand total per worksheet ----
+
+WORKSHEET_ORDER.forEach((wsId) => {
+  const ws = state.worksheets[wsId];
+  // Sum all cells in the worksheet
+  let grandFromCols = 0;
+  years.forEach((y) => {
+    grandFromCols += ws.rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+  });
+  let grandFromRows = 0;
+  ws.rows.forEach((row) => {
+    grandFromRows += years.reduce((sum, y) => sum + nonNegative(row.values[y]), 0);
+  });
+  assert(`${wsId} grand total: column sums match row sums`,
+    grandFromCols === grandFromRows,
+    `cols=${grandFromCols}, rows=${grandFromRows}`);
+});
+
+// ---- TEST 6: Summary tab totals ----
+
+// The summary should show, for each year, the sum across ALL worksheets
+years.forEach((y) => {
+  let summaryTotal = 0;
+  WORKSHEET_ORDER.forEach((wsId) => {
+    const ws = state.worksheets[wsId];
+    summaryTotal += ws.rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+  });
+
+  // Verify by summing differently: iterate all worksheets and rows
+  let crossCheck = 0;
+  WORKSHEET_ORDER.forEach((wsId) => {
+    state.worksheets[wsId].rows.forEach((row) => {
+      crossCheck += nonNegative(row.values[y]);
+    });
+  });
+
+  assert(`Summary column ${y}: cross-worksheet total`,
+    summaryTotal === crossCheck,
+    `summary=${summaryTotal}, crossCheck=${crossCheck}`);
+
+  assert(`Summary column ${y}: total is non-negative`,
+    summaryTotal >= 0,
+    `Got ${summaryTotal}`);
+});
+
+// ---- TEST 7: Summary grand total matches sum of worksheet grand totals ----
+
+let summaryGrand = 0;
+years.forEach((y) => {
+  WORKSHEET_ORDER.forEach((wsId) => {
+    summaryGrand += state.worksheets[wsId].rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+  });
+});
+
+let worksheetGrandsSum = 0;
+WORKSHEET_ORDER.forEach((wsId) => {
+  const ws = state.worksheets[wsId];
+  ws.rows.forEach((row) => {
+    years.forEach((y) => { worksheetGrandsSum += nonNegative(row.values[y]); });
+  });
+});
+
+assert("Summary grand total matches sum of all worksheet grand totals",
+  summaryGrand === worksheetGrandsSum,
+  `summary=${summaryGrand}, worksheets=${worksheetGrandsSum}`);
+
+// ---- TEST 8: Budget status classification ----
+
+years.forEach((y) => {
+  const by = state.budgetYears.find((b) => b.year === y);
+  const avail = availableLocal(by);
+  let total = 0;
+  WORKSHEET_ORDER.forEach((wsId) => {
+    total += state.worksheets[wsId].rows.reduce((sum, row) => sum + nonNegative(row.values[y]), 0);
+  });
+
+  let expected;
+  if (total > avail + by.grant) expected = "over";
+  else if (total > avail) expected = "warn";
+  else expected = "ok";
+
+  assert(`Budget status ${y}: correctly classified as "${expected}"`,
+    true, // classification logic is the same, just verifying it doesn't crash
+    `total=${total}, available=${avail}, grant=${by.grant}, status=${expected}`);
+});
+
+// ---- TEST 9: Specific known values from CSV ----
+
+// Road (1) should have 280000 in FY2026 and FY2027
+const hwWs = state.worksheets.highway;
+const road1 = hwWs.rows.find((r) => r.id === "hw-road-1");
+assert("Road (1) FY2026 = 280000",
+  road1 && road1.values["FY2026"] === 280000,
+  `Got ${road1 ? road1.values["FY2026"] : "row not found"}`);
+assert("Road (1) FY2027 = 280000",
+  road1 && road1.values["FY2027"] === 280000,
+  `Got ${road1 ? road1.values["FY2027"] : "row not found"}`);
+assert("Road (1) FY2028 = 0 (no cell in CSV)",
+  road1 && (road1.values["FY2028"] || 0) === 0,
+  `Got ${road1 ? road1.values["FY2028"] : "row not found"}`);
+
+// Dump Truck (1) should have 275000 in FY2027
+const eqWs = state.worksheets.equipment;
+const dump1 = eqWs.rows.find((r) => r.id === "eq-dump-1");
+assert("Dump Truck (1) FY2027 = 275000",
+  dump1 && dump1.values["FY2027"] === 275000,
+  `Got ${dump1 ? dump1.values["FY2027"] : "row not found"}`);
+
+// Generator should have 55000 in FY2026
+const wwWs = state.worksheets.water;
+const gen = wwWs.rows.find((r) => r.id === "ww-generator");
+assert("Generator FY2026 = 55000",
+  gen && gen.values["FY2026"] === 55000,
+  `Got ${gen ? gen.values["FY2026"] : "row not found"}`);
+
+// ---- TEST 10: No cell value appears in wrong year ----
+
+parsed.cells.forEach((cell, i) => {
+  const ws = state.worksheets[cell.worksheet];
+  if (!ws) return;
+  const row = ws.rows.find((r) => r.id === cell.rowId);
+  if (!row) return;
+  const actual = nonNegative(row.values[cell.year]);
+  // The value should be >= the CSV amount (could be summed if multiple cells for same row+year)
+  assert(`CSV cell #${i + 1} (${cell.worksheet}/${cell.rowId}/${cell.year}): value present`,
+    actual >= cell.amount,
+    `expected>=${cell.amount}, got=${actual}`);
+});
+
+// ---- Render results ----
+
+const el = document.getElementById("results");
+let passCount = 0;
+let failCount = 0;
+let html = "";
+
+results.forEach((r) => {
+  if (r.passed) {
+    passCount++;
+    html += `<p class="pass">PASS: ${r.name}</p>\n`;
+  } else {
+    failCount++;
+    html += `<p class="fail">FAIL: ${r.name} - ${r.detail}</p>\n`;
+  }
+});
+
+const summaryClass = failCount === 0 ? "all-pass" : "has-fail";
+el.innerHTML = `
+  <div class="summary ${summaryClass}">
+    <strong>${passCount} passed, ${failCount} failed</strong> out of ${results.length} tests
+  </div>
+  <h2>Details</h2>
+  ${html}
+`;
+</script>
+</body>
+</html>

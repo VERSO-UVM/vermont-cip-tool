@@ -194,7 +194,7 @@ main#app {
   font-weight: 600;
   white-space: nowrap;
 }
-.worksheet-table .name-col { width: 160px; }
+.worksheet-table .desc-col { width: 200px; min-width: 160px; }
 .worksheet-table .notes-col { width: 180px; }
 .worksheet-table .row-total { font-weight: 700; white-space: nowrap; text-align: right; }
 
@@ -219,7 +219,27 @@ main#app {
   border-color: var(--color-border);
 }
 
-.worksheet-table .name-input, .worksheet-table .notes-input {
+.worksheet-table .desc-input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  resize: vertical;
+  line-height: 1.4;
+}
+.worksheet-table .desc-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  outline: none;
+}
+.worksheet-table .desc-input:hover {
+  border-color: var(--color-border);
+}
+.worksheet-table .notes-input {
   width: 100%;
   font: inherit;
   font-size: 0.85rem;
@@ -229,12 +249,12 @@ main#app {
   background: transparent;
   color: inherit;
 }
-.worksheet-table .name-input:focus, .worksheet-table .notes-input:focus {
+.worksheet-table .notes-input:focus {
   border-color: var(--color-primary);
   background: var(--color-surface);
   outline: none;
 }
-.worksheet-table .name-input:hover, .worksheet-table .notes-input:hover {
+.worksheet-table .notes-input:hover {
   border-color: var(--color-border);
 }
 

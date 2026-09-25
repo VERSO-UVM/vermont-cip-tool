@@ -13,7 +13,7 @@ export function buildExportHtml(state) {
     const ws = state.worksheets[wsId];
     if (!ws) return;
 
-    let headerRow = "<tr><th>Project</th><th>Name</th>";
+    let headerRow = "<tr><th>Project</th><th>Description</th>";
     years.forEach((y) => { headerRow += `<th>${escapeHtml(y)}</th>`; });
     headerRow += "<th>Total</th><th>Notes</th></tr>";
 

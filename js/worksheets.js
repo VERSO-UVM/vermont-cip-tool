@@ -16,7 +16,7 @@ export function renderWorksheet(state, wsId, onChanged) {
 
 function buildTable(container, ws, years, state, wsId) {
   // Header
-  let headerHtml = '<tr><th class="row-label-col">Project</th><th class="row-label-col name-col">Name / Description</th>';
+  let headerHtml = '<tr><th class="row-label-col">Project</th><th class="desc-col">Description</th>';
   years.forEach((y) => { headerHtml += `<th>${escapeHtml(y)}</th>`; });
   headerHtml += '<th>Total</th><th class="notes-col">Notes</th></tr>';
 
@@ -28,7 +28,7 @@ function buildTable(container, ws, years, state, wsId) {
     bodyHtml += `<td class="row-label-col">${escapeHtml(row.label)}</td>`;
 
     if (row.type === "named" || row.type === "other") {
-      bodyHtml += `<td><input type="text" class="name-input" data-row="${escapeAttr(row.id)}" data-field="customName" value="${escapeAttr(row.customName || "")}" placeholder="Enter name..." /></td>`;
+      bodyHtml += `<td class="desc-cell"><textarea class="desc-input" data-row="${escapeAttr(row.id)}" data-field="customName" rows="2" placeholder="Enter description...">${escapeHtml(row.customName || "")}</textarea></td>`;
     } else {
       bodyHtml += "<td></td>";
     }
@@ -82,7 +82,7 @@ function bindInputs(container, ws, years, state, wsId, onChanged) {
     });
   });
 
-  container.querySelectorAll(".name-input, .notes-input").forEach((input) => {
+  container.querySelectorAll(".desc-input, .notes-input").forEach((input) => {
     input.addEventListener("input", () => {
       const rowId = input.dataset.row;
       const field = input.dataset.field;
