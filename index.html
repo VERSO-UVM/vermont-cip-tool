@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+<title>Vermont Municipal CIP Tool</title>
+<meta name="description" content="A simple capital improvement program tool for Vermont municipalities. Build a multi-year capital plan across highway, facilities, water/wastewater, and equipment." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>Capital Improvement Program</h1>
+  <p class="tagline">Vermont Municipal CIP Tool</p>
+  <nav class="tab-bar" id="tab-bar" aria-label="Sections">
+    <button type="button" class="tab-btn active" data-tab="budget">Budget Setup</button>
+    <button type="button" class="tab-btn" data-tab="highway">Highway</button>
+    <button type="button" class="tab-btn" data-tab="facilities">Facilities</button>
+    <button type="button" class="tab-btn" data-tab="water">Water/WW</button>
+    <button type="button" class="tab-btn" data-tab="equipment">Equipment</button>
+    <button type="button" class="tab-btn" data-tab="summary">Summary</button>
+  </nav>
+</header>
+
+<main id="app">
+
+  <!-- BUDGET SETUP TAB -->
+  <section class="tab-pane active" id="tab-budget">
+    <h2>Budget Setup</h2>
+    <p class="hint">Set the plan length, each year's estimated capital funds, and your town's
+      information. The same budget applies across all worksheet tabs.</p>
+
+    <div class="meta-row">
+      <label>Town name
+        <input type="text" id="town-name-input" placeholder="e.g. Pawlet" />
+      </label>
+      <label>Prepared by
+        <input type="text" id="prepared-by-input" placeholder="e.g. Planning Commission" />
+      </label>
+    </div>
+
+    <div class="setup-row">
+      <label>Start fiscal year
+        <input type="number" id="start-year-input" min="2000" max="2100" step="1" />
+      </label>
+      <label>Number of years
+        <input type="number" id="num-years-input" min="1" max="10" step="1" />
+      </label>
+    </div>
+
+    <h3>Annual capital capacity</h3>
+    <p class="hint">A year's total is <strong>green</strong> if within local funds,
+      <strong>amber</strong> if it needs grants, and <strong>red</strong> if it exceeds
+      everything - meaning you'd need a bond or larger outside grant.</p>
+    <p class="hint"><strong>Existing debt service</strong> is what the town already owes each
+      year. It comes off the top, so the plan only gets what's left.</p>
+    <div class="table-wrap">
+      <table class="budget-years-table" id="budget-years-table">
+        <thead>
+          <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Local funds</th>
+            <th scope="col">Grant estimate</th>
+            <th scope="col">Existing debt service</th>
+            <th scope="col">Local funds left to spend</th>
+          </tr>
+        </thead>
+        <tbody id="budget-years-body"></tbody>
+      </table>
+    </div>
+
+    <h3>Import from CSV</h3>
+    <p class="hint">Import a prepared CIP sheet or re-import a session you exported earlier.</p>
+    <div class="actions">
+      <label class="btn file-btn" for="csv-file-input">Import CSV</label>
+      <input type="file" id="csv-file-input" accept=".csv,text/csv" hidden />
+    </div>
+    <p id="csv-import-status" class="hint" aria-live="polite"></p>
+  </section>
+
+  <!-- WORKSHEET TAB (shared by all four worksheet types) -->
+  <section class="tab-pane" id="tab-worksheet">
+    <h2 id="worksheet-label"></h2>
+    <p class="hint">Enter dollar amounts in each year column. Row and column totals update
+      automatically. Column totals reflect spending across <strong>all</strong> worksheets
+      against the shared budget.</p>
+    <div class="grid-wrap" id="worksheet-grid"></div>
+  </section>
+
+  <!-- SUMMARY TAB -->
+  <section class="tab-pane" id="tab-summary">
+    <h2>Summary</h2>
+    <p class="hint">Roll-up of all worksheets against your budget capacity. Green means the
+      year fits within local funds; amber needs grants; red exceeds everything.</p>
+    <div id="summary-content"></div>
+
+    <div class="notes-block">
+      <label for="global-notes"><strong>Notes</strong> - bonds, grants, phasing decisions,
+        anything to remember.</label>
+      <textarea id="global-notes" rows="4"></textarea>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn" id="btn-export-csv">Export CSV</button>
+      <button class="btn" id="btn-export-doc">Export HTML Report</button>
+      <button class="btn" id="btn-print">Print Summary</button>
+      <button class="btn btn-danger" id="btn-restart">Start New Plan</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" id="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<footer class="app-footer no-print">
+  <p>Built for Vermont municipalities by <a href="https://github.com/VERSO-UVM">VERSO @ UVM</a>.</p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
