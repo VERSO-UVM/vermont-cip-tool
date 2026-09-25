@@ -107,6 +107,8 @@ main#app {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   width: 200px;
+  color: inherit;
+  background: var(--color-surface);
 }
 
 /* Actions */
@@ -163,6 +165,8 @@ main#app {
   padding: 6px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  color: inherit;
+  background: var(--color-surface);
 }
 .budget-years-table .available-cell { font-weight: 700; white-space: nowrap; }
 
@@ -203,6 +207,7 @@ main#app {
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
+  color: inherit;
   text-align: right;
 }
 .worksheet-table .cell-input:focus {
@@ -222,6 +227,7 @@ main#app {
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
+  color: inherit;
 }
 .worksheet-table .name-input:focus, .worksheet-table .notes-input:focus {
   border-color: var(--color-primary);
@@ -278,6 +284,8 @@ main#app {
   padding: 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  color: inherit;
+  background: var(--color-surface);
 }
 
 /* Modal */
