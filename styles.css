@@ -167,6 +167,12 @@ main#app {
   border-radius: var(--radius);
   color: inherit;
   background: var(--color-surface);
+  -moz-appearance: textfield;
+}
+.budget-years-table input::-webkit-outer-spin-button,
+.budget-years-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .budget-years-table .available-cell { font-weight: 700; white-space: nowrap; }
 
@@ -209,6 +215,12 @@ main#app {
   background: transparent;
   color: inherit;
   text-align: right;
+  -moz-appearance: textfield;
+}
+.worksheet-table .cell-input::-webkit-outer-spin-button,
+.worksheet-table .cell-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .worksheet-table .cell-input:focus {
   border-color: var(--color-primary);
