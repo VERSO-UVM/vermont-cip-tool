@@ -240,9 +240,10 @@ main#app {
 
 .worksheet-table .total-row td, .worksheet-table .total-row th {
   font-weight: 700;
-  background: #efece3;
+  background: inherit;
+  color: var(--color-accent);
 }
-.year-total.ok { background: var(--color-ok-bg); color: var(--color-primary-dark); }
+.year-total.ok { color: var(--color-accent); }
 .year-total.warn { background: var(--color-warn-bg); color: var(--color-warn); }
 .year-total.over { background: var(--color-over-bg); color: var(--color-over); }
 
@@ -343,7 +344,8 @@ main#app {
     --color-over-bg: #3a2320;
   }
   .worksheet-table thead th, .budget-years-table thead th,
-  .summary-table thead th, .total-row td, .total-row th { background: #2c2f26; }
+  .summary-table thead th { background: #2c2f26; }
+  .summary-table .total-row td, .summary-table .total-row th { background: #2c2f26; }
   .summary-table .capacity-row td, .summary-table .capacity-row th { background: #282b22; }
   .tab-btn.active { border-bottom-color: var(--color-surface); }
 }
